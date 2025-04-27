@@ -4,3 +4,4 @@ output
 *.png
 *.jpg
 *.jpeg
+latent_frames
