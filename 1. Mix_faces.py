@@ -11,11 +11,11 @@ from PIL import Image
 import importlib
 
 # --- Параметры ---
-MODEL_PATH = './models/vae_model_V-1.pth'
-MORPH_STEPS = 30
+MODEL_PATH = './models/vae_model.pth'
+MORPH_STEPS = 100
 INPUT_DIR = 'input'
-SAVE_DIR = 'morph_frames'
-GIF_PATH = 'face_morph.gif'
+SAVE_DIR = './mix/morph_frames'
+GIF_PATH = './mix/face_morph.gif'
 CROP_PERCENT = 0.999  # Обрезаем центральную часть изображения (80%)
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
