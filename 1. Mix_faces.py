@@ -12,7 +12,7 @@ import importlib
 
 # --- Параметры ---
 MODEL_PATH = './models/vae_model.pth'
-MORPH_STEPS = 40
+MORPH_STEPS = 100
 INPUT_DIR = 'input'
 SAVE_DIR = './mix/morph_frames'
 GIF_PATH = './mix/face_morph.gif'
