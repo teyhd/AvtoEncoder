@@ -13,11 +13,16 @@ import importlib
 # --- Параметры ---
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 MODEL_PATH = './models/vae_model_V2.pth'
 MORPH_STEPS = 100
 =======
 =======
 >>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
+MODEL_PATH = './models/vae0_model_V1.pth'
+MORPH_STEPS = 30
+>>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
+=======
 MODEL_PATH = './models/vae0_model_V1.pth'
 MORPH_STEPS = 30
 >>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
@@ -28,8 +33,12 @@ CROP_PERCENT = 0.999  # Обрезаем центральную часть из�
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
+<<<<<<< HEAD
 ver = checkpoint['v']
 module = importlib.import_module(f'VAE.vae_v{ver}')
+=======
+module = importlib.import_module(f'VAE.vae_v{checkpoint['v']}')
+>>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
 VAE = module.VAE
 
 print(checkpoint['v'])
