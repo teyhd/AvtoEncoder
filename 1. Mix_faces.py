@@ -11,8 +11,8 @@ from PIL import Image
 import importlib
 
 # --- Параметры ---
-MODEL_PATH = './models/vae_model.pth'
-MORPH_STEPS = 100
+MODEL_PATH = './models/vae0_model_V1.pth'
+MORPH_STEPS = 30
 INPUT_DIR = 'input'
 SAVE_DIR = './mix/morph_frames'
 GIF_PATH = './mix/face_morph.gif'
@@ -27,6 +27,8 @@ print(checkpoint['v'])
 BATCH_SIZE = checkpoint['BATCH_SIZE']
 LATENT_DIM = checkpoint['LATENT_DIM']
 IMAGE_SIZE = checkpoint['IMAGE_SIZE']
+print(f'IMAGE_SIZE: {IMAGE_SIZE}')
+print(f'LATENT_DIM: {LATENT_DIM}')
 
 # Получаем список файлов и фильтруем только картинки
 image_files = [f for f in os.listdir(INPUT_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
