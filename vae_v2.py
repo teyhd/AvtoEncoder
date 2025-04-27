@@ -1,32 +1,25 @@
-# --- Улучшенная архитектура VAE с поддержкой высокого качества изображений ---
-
+# --- Исправленная структура VAE с правильным масштабированием и адаптацией ---
 import torch
 import torch.nn as nn
 from torchvision.models import vgg16, VGG16_Weights
 
-# --- Расширенный Encoder ---
-# --- Гибкий Encoder и Decoder для разных IMAGE_SIZE и LATENT_DIM ---
-
+# Encoder
 class Encoder(nn.Module):
     def __init__(self, latent_dim, img_size):
         super().__init__()
-        assert img_size >= 64 and img_size % 16 == 0, "IMAGE_SIZE должно быть кратно 16 и >= 64"
-
-        self.img_size = img_size
-        base_channels = 32
+        assert img_size >= 64 and img_size % 16 == 0
+        self.base_channels = 32
         layers = []
         in_channels = 3
-
-        # Количество свёрточных блоков определяется автоматически
         self.num_blocks = int(torch.log2(torch.tensor(img_size // 4)).item())
 
         for _ in range(self.num_blocks):
-            out_channels = base_channels
+            out_channels = min(512, self.base_channels)
             layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False))
             layers.append(nn.BatchNorm2d(out_channels))
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             in_channels = out_channels
-            base_channels *= 2  # Увеличение числа каналов
+            self.base_channels *= 2
 
         self.conv = nn.Sequential(*layers)
         self.final_spatial = img_size // (2 ** self.num_blocks)
@@ -40,32 +33,29 @@ class Encoder(nn.Module):
         logvar = self.fc_logvar(x)
         return mu, logvar
 
+# Decoder
 class Decoder(nn.Module):
     def __init__(self, latent_dim, img_size):
         super().__init__()
-        assert img_size >= 64 and img_size % 16 == 0, "IMAGE_SIZE должно быть кратно 16 и >= 64"
-
-        self.img_size = img_size
+        assert img_size >= 64 and img_size % 16 == 0
+        base_channels = 32
         self.num_blocks = int(torch.log2(torch.tensor(img_size // 4)).item())
         self.final_spatial = img_size // (2 ** self.num_blocks)
-        self.start_channels = 32 * (2 ** self.num_blocks)
+        self.start_channels = min(512, base_channels * (2 ** (self.num_blocks - 1)))
 
         self.fc = nn.Linear(latent_dim, self.start_channels * self.final_spatial * self.final_spatial)
 
         layers = []
         in_channels = self.start_channels
-        for _ in range(self.num_blocks):
-            out_channels = in_channels // 2
+        for _ in range(self.num_blocks - 1):
+            out_channels = max(in_channels // 2, 32)
             layers.append(nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False))
             layers.append(nn.BatchNorm2d(out_channels))
             layers.append(nn.ReLU(inplace=True))
             in_channels = out_channels
 
-        #layers[-2] = nn.ConvTranspose2d(in_channels, 3, kernel_size=4, stride=2, padding=1)
-       # layers[-2] = nn.ConvTranspose2d(in_channels * 2, 3, kernel_size=4, stride=2, padding=1)
-        layers[-2] = nn.ConvTranspose2d(in_channels, 3, kernel_size=4, stride=2, padding=1)
-
-        layers[-1] = nn.Sigmoid()
+        layers.append(nn.ConvTranspose2d(in_channels, 3, kernel_size=4, stride=2, padding=1))
+        layers.append(nn.Sigmoid())
 
         self.deconv = nn.Sequential(*layers)
 
@@ -75,12 +65,7 @@ class Decoder(nn.Module):
         x = self.deconv(x)
         return x
 
-
-# Пример использования:
-# vae_encoder = Encoder(latent_dim=512, img_size=256)
-# vae_decoder = Decoder(latent_dim=512, img_size=256)
-
-# --- Полная модель VAE ---
+# VAE
 class VAE(nn.Module):
     def __init__(self, latent_dim, img_size):
         super().__init__()
@@ -96,23 +81,32 @@ class VAE(nn.Module):
         mu, logvar = self.encoder(x)
         z = self.reparameterize(mu, logvar)
         recon_x = self.decoder(z)
+        if recon_x.shape[2:] != x.shape[2:]:
+            recon_x = nn.functional.interpolate(recon_x, size=x.shape[2:], mode='bilinear', align_corners=False)
         return recon_x, mu, logvar
 
 # --- Перцептуальная функция потерь VGG ---
 class VGGPerceptualLoss(nn.Module):
     def __init__(self, device='cuda', layers=(3, 8, 15), normalize=True):
         super().__init__()
-        vgg = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).features.to(device).eval()
+        vgg = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).features
+        vgg = vgg.eval()  # обязательно в eval
+        vgg = vgg.to(device)  # потом to(device)
+
         for param in vgg.parameters():
             param.requires_grad = False
 
-        self.blocks = nn.ModuleList([
-            nn.Sequential(*list(vgg.children())[:layer+1]).to(device) for layer in layers
-        ])
+        self.blocks = nn.ModuleList()
+        prev_idx = 0
+        for idx in layers:
+            block = nn.Sequential(*list(vgg.children())[prev_idx:idx+1]).to(device)
+            self.blocks.append(block)
+            prev_idx = idx+1
+
         self.normalize = normalize
 
-        self.register_buffer('mean', torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
-        self.register_buffer('std', torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
+        self.register_buffer('mean', torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).to(device))
+        self.register_buffer('std', torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).to(device))
 
     def forward(self, x, y):
         if self.normalize:
@@ -124,3 +118,4 @@ class VGGPerceptualLoss(nn.Module):
             y = block(y)
             loss += nn.functional.mse_loss(x, y)
         return loss
+
