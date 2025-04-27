@@ -46,14 +46,14 @@ class Decoder(nn.Module):
         assert img_size >= 64 and img_size % 16 == 0, "IMAGE_SIZE должно быть кратно 16 и >= 64"
 
         self.img_size = img_size
-        base_channels = 32 * (2 ** (int(torch.log2(torch.tensor(img_size // 4)).item())))
         self.num_blocks = int(torch.log2(torch.tensor(img_size // 4)).item())
         self.final_spatial = img_size // (2 ** self.num_blocks)
+        self.start_channels = 32 * (2 ** self.num_blocks)
 
-        self.fc = nn.Linear(latent_dim, base_channels * self.final_spatial * self.final_spatial)
+        self.fc = nn.Linear(latent_dim, self.start_channels * self.final_spatial * self.final_spatial)
 
         layers = []
-        in_channels = base_channels
+        in_channels = self.start_channels
         for _ in range(self.num_blocks):
             out_channels = in_channels // 2
             layers.append(nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False))
@@ -61,16 +61,20 @@ class Decoder(nn.Module):
             layers.append(nn.ReLU(inplace=True))
             in_channels = out_channels
 
-        layers[-2] = nn.ConvTranspose2d(in_channels * 2, 3, kernel_size=4, stride=2, padding=1)
+        #layers[-2] = nn.ConvTranspose2d(in_channels, 3, kernel_size=4, stride=2, padding=1)
+       # layers[-2] = nn.ConvTranspose2d(in_channels * 2, 3, kernel_size=4, stride=2, padding=1)
+        layers[-2] = nn.ConvTranspose2d(in_channels, 3, kernel_size=4, stride=2, padding=1)
+
         layers[-1] = nn.Sigmoid()
 
         self.deconv = nn.Sequential(*layers)
 
     def forward(self, z):
         x = self.fc(z)
-        x = x.view(-1, 32 * (2 ** self.num_blocks), self.final_spatial, self.final_spatial)
+        x = x.view(-1, self.start_channels, self.final_spatial, self.final_spatial)
         x = self.deconv(x)
         return x
+
 
 # Пример использования:
 # vae_encoder = Encoder(latent_dim=512, img_size=256)
