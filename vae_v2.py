@@ -5,29 +5,33 @@ import torch.nn as nn
 from torchvision.models import vgg16, VGG16_Weights
 
 # --- Расширенный Encoder ---
+# --- Гибкий Encoder и Decoder для разных IMAGE_SIZE и LATENT_DIM ---
+
 class Encoder(nn.Module):
     def __init__(self, latent_dim, img_size):
         super().__init__()
         assert img_size >= 64 and img_size % 16 == 0, "IMAGE_SIZE должно быть кратно 16 и >= 64"
 
-        # Стартовое количество каналов
+        self.img_size = img_size
         base_channels = 32
         layers = []
         in_channels = 3
 
-        # Фиксированное количество свёрток: 5 штук
-        for _ in range(5):
+        # Количество свёрточных блоков определяется автоматически
+        self.num_blocks = int(torch.log2(torch.tensor(img_size // 4)).item())
+
+        for _ in range(self.num_blocks):
             out_channels = base_channels
             layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False))
             layers.append(nn.BatchNorm2d(out_channels))
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             in_channels = out_channels
-            base_channels *= 2  # Удвоение каналов
+            base_channels *= 2  # Увеличение числа каналов
 
         self.conv = nn.Sequential(*layers)
-        final_size = img_size // (2 ** 5)  # После 5 слоёв уменьшается в 32 раза
-        self.fc_mu = nn.Linear(in_channels * final_size * final_size, latent_dim)
-        self.fc_logvar = nn.Linear(in_channels * final_size * final_size, latent_dim)
+        self.final_spatial = img_size // (2 ** self.num_blocks)
+        self.fc_mu = nn.Linear(in_channels * self.final_spatial * self.final_spatial, latent_dim)
+        self.fc_logvar = nn.Linear(in_channels * self.final_spatial * self.final_spatial, latent_dim)
 
     def forward(self, x):
         x = self.conv(x)
@@ -36,20 +40,21 @@ class Encoder(nn.Module):
         logvar = self.fc_logvar(x)
         return mu, logvar
 
-# --- Расширенный Decoder ---
 class Decoder(nn.Module):
     def __init__(self, latent_dim, img_size):
         super().__init__()
         assert img_size >= 64 and img_size % 16 == 0, "IMAGE_SIZE должно быть кратно 16 и >= 64"
 
-        base_channels = 32 * (2 ** 5)  # Должно совпадать с последним каналом энкодера
-        final_size = img_size // (2 ** 5)
+        self.img_size = img_size
+        base_channels = 32 * (2 ** (int(torch.log2(torch.tensor(img_size // 4)).item())))
+        self.num_blocks = int(torch.log2(torch.tensor(img_size // 4)).item())
+        self.final_spatial = img_size // (2 ** self.num_blocks)
 
-        self.fc = nn.Linear(latent_dim, base_channels * final_size * final_size)
+        self.fc = nn.Linear(latent_dim, base_channels * self.final_spatial * self.final_spatial)
 
         layers = []
         in_channels = base_channels
-        for _ in range(5):
+        for _ in range(self.num_blocks):
             out_channels = in_channels // 2
             layers.append(nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False))
             layers.append(nn.BatchNorm2d(out_channels))
@@ -63,10 +68,13 @@ class Decoder(nn.Module):
 
     def forward(self, z):
         x = self.fc(z)
-        final_size = int((x.size(-1) / (32 * 2 ** 5)) ** 0.5)
-        x = x.view(-1, 32 * (2 ** 5), final_size, final_size)
+        x = x.view(-1, 32 * (2 ** self.num_blocks), self.final_spatial, self.final_spatial)
         x = self.deconv(x)
         return x
+
+# Пример использования:
+# vae_encoder = Encoder(latent_dim=512, img_size=256)
+# vae_decoder = Decoder(latent_dim=512, img_size=256)
 
 # --- Полная модель VAE ---
 class VAE(nn.Module):
