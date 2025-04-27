@@ -7,7 +7,7 @@ from PIL import Image
 import importlib
 
 # --- Параметры ---
-INPUT_DIR = './data/Vlad'
+INPUT_DIR = './data/Roman'
 MODEL_PATH = './models/VAE_model.pth'
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -47,7 +47,7 @@ for img_name in os.listdir(INPUT_DIR):
 latent_vectors = np.stack(latent_vectors)
 
 # --- PCA по латентным векторам ---
-pca = PCA(n_components=3)  # Можно больше, но 2 достаточно для анализа
+pca = PCA(n_components=2)  # Можно больше, но 2 достаточно для анализа
 pca.fit(latent_vectors)
 components = pca.components_
 
@@ -73,7 +73,7 @@ def apply_emotion_shift(img_path, shift, strength=1.0):
     return generated
 
 # --- Пример применения ---
-result = apply_emotion_shift('./input/1.jpg', emotion_shift, strength=0.5)
+result = apply_emotion_shift('./input/2.jpg', emotion_shift, strength=0.5)
 
 # --- Сохранение результата ---
 import torchvision.utils as vutils
