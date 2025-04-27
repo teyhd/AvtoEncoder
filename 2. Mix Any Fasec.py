@@ -7,11 +7,11 @@ import os
 from PIL import Image
 import importlib
 
-MODEL_PATH = './models/vae_model_V-1.pth'#  vae_model_V2
+MODEL_PATH = './models/vae_model.pth'#  vae_model_V2
 INPUT_DIR = 'input'
-GIF_PATH = 'face_morph.gif'
+GIF_PATH = './mix/face_morph.gif'
 CROP_PERCENT = 1
-MORPH_STEPS = 100
+MORPH_STEPS = 50
 FPS = 25
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
