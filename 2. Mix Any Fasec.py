@@ -16,13 +16,16 @@ FPS = 25
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
-module = importlib.import_module(f'VAE.vae_v{checkpoint['v']}')
+ver = checkpoint['v']
+module = importlib.import_module(f'VAE.vae_v{ver}')
 VAE = module.VAE
-print(f'VAE V: {checkpoint['v']}')
-print(f'IMAGE_SIZE: {checkpoint['IMAGE_SIZE']}')
-print(f'LATENT_DIM: {checkpoint['LATENT_DIM']}')
-BATCH_SIZE = checkpoint['BATCH_SIZE']
 
+print(checkpoint['v'])
+BATCH_SIZE = checkpoint['BATCH_SIZE']
+LATENT_DIM = checkpoint['LATENT_DIM']
+IMAGE_SIZE = checkpoint['IMAGE_SIZE']
+print(f'IMAGE_SIZE: {IMAGE_SIZE}')
+print(f'LATENT_DIM: {LATENT_DIM}')
 
 # --- Функция Slerp ---
 def slerp(val, low, high):
