@@ -7,7 +7,7 @@ import os
 from PIL import Image
 import importlib
 
-MODEL_PATH = './models/vae_model.pth'#  vae_model_V2
+MODEL_PATH = './models/vae_model_V2.pth'#  vae_model_V2
 INPUT_DIR = 'input'
 GIF_PATH = './mix/face_morph.gif'
 CROP_PERCENT = 1
@@ -18,10 +18,11 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
 module = importlib.import_module(f'VAE.vae_v{checkpoint['v']}')
 VAE = module.VAE
-print(checkpoint['v'])
+print(f'VAE V: {checkpoint['v']}')
+print(f'IMAGE_SIZE: {checkpoint['IMAGE_SIZE']}')
+print(f'LATENT_DIM: {checkpoint['LATENT_DIM']}')
 BATCH_SIZE = checkpoint['BATCH_SIZE']
-LATENT_DIM = checkpoint['LATENT_DIM']
-IMAGE_SIZE = checkpoint['IMAGE_SIZE']
+
 
 # --- Функция Slerp ---
 def slerp(val, low, high):
