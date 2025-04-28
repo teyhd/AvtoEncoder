@@ -7,7 +7,8 @@ import os
 from PIL import Image
 import importlib
 
-MODEL_PATH = './models/vae_model_V2.pth'#  vae_model_V2
+#MODEL_PATH = './models/vae_model_V2.pth'#  vae_model_V2
+MODEL_PATH = '\\\\fs.local\\AI\\AvtoEncoder\\models\\vae_model_V3.pth'
 INPUT_DIR = 'input'
 GIF_PATH = './mix/face_morph.gif'
 CROP_PERCENT = 1
@@ -19,13 +20,13 @@ checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
 ver = checkpoint['v']
 module = importlib.import_module(f'VAE.vae_v{ver}')
 VAE = module.VAE
-
-print(checkpoint['v'])
+print(f'\nVAE_V: {checkpoint['v']} \nIMAGE_SIZE: {checkpoint['IMAGE_SIZE']} \nLATENT_DIM: {checkpoint['LATENT_DIM']} \nBATCH_SIZE: {checkpoint['BATCH_SIZE']} \nEPOCH: {checkpoint['EPOCH']}\n')
 BATCH_SIZE = checkpoint['BATCH_SIZE']
 LATENT_DIM = checkpoint['LATENT_DIM']
 IMAGE_SIZE = checkpoint['IMAGE_SIZE']
-print(f'IMAGE_SIZE: {IMAGE_SIZE}')
-print(f'LATENT_DIM: {LATENT_DIM}')
+#print(f'IMAGE_SIZE: {IMAGE_SIZE}')
+#print(f'LATENT_DIM: {LATENT_DIM}')
+#print(checkpoint['v'])
 
 # --- Функция Slerp ---
 def slerp(val, low, high):

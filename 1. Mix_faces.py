@@ -12,8 +12,9 @@ import importlib
 
 # --- Параметры ---
 
-MODEL_PATH = './models/vae_model_V2.pth'
-MORPH_STEPS = 100
+MODEL_PATH = './models/vae_model_V3.pth'
+MODEL_PATH = '\\\\fs.local\\AI\\AvtoEncoder\\models\\vae_model_V3.pth'
+MORPH_STEPS = 300
 
 INPUT_DIR = 'input'
 SAVE_DIR = './mix/morph_frames'
@@ -25,13 +26,11 @@ checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
 ver = checkpoint['v']
 module = importlib.import_module(f'VAE.vae_v{ver}')
 VAE = module.VAE
-
-print(checkpoint['v'])
+print(f'\nVAE_V: {checkpoint['v']} \nIMAGE_SIZE: {checkpoint['IMAGE_SIZE']} \nLATENT_DIM: {checkpoint['LATENT_DIM']} \nBATCH_SIZE: {checkpoint['BATCH_SIZE']} \nEPOCH: {checkpoint['EPOCH']}\n')
+#print(checkpoint['v'])
 BATCH_SIZE = checkpoint['BATCH_SIZE']
 LATENT_DIM = checkpoint['LATENT_DIM']
 IMAGE_SIZE = checkpoint['IMAGE_SIZE']
-print(f'IMAGE_SIZE: {IMAGE_SIZE}')
-print(f'LATENT_DIM: {LATENT_DIM}')
 
 # Получаем список файлов и фильтруем только картинки
 image_files = [f for f in os.listdir(INPUT_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
