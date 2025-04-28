@@ -6,3 +6,4 @@ output
 *.jpeg
 *.gif
 latent_frames
+models
