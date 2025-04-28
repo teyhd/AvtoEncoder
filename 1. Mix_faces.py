@@ -11,26 +11,10 @@ from PIL import Image
 import importlib
 
 # --- Параметры ---
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-MODEL_PATH = './models/vae_model_V2.pth'
-MORPH_STEPS = 100
-=======
-=======
->>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
-MODEL_PATH = './models/vae0_model_V1.pth'
+
+MODEL_PATH = './models/vae_model_V-3.pth'
 MORPH_STEPS = 30
->>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
-=======
-MODEL_PATH = './models/vae0_model_V1.pth'
-MORPH_STEPS = 30
->>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
-=======
-MODEL_PATH = './models/vae0_model_V1.pth'
-MORPH_STEPS = 30
->>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
+
 INPUT_DIR = 'input'
 SAVE_DIR = './mix/morph_frames'
 GIF_PATH = './mix/face_morph.gif'
@@ -38,16 +22,9 @@ CROP_PERCENT = 0.999  # Обрезаем центральную часть из�
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 ver = checkpoint['v']
 module = importlib.import_module(f'VAE.vae_v{ver}')
-=======
-module = importlib.import_module(f'VAE.vae_v{checkpoint['v']}')
->>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
-=======
-module = importlib.import_module(f'VAE.vae_v{checkpoint['v']}')
->>>>>>> cc4f8f54bd9bb7de5cbd8e01162f65ed904c7084
 VAE = module.VAE
 
 print(checkpoint['v'])
