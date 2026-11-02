@@ -12,9 +12,9 @@ import importlib
 
 # --- Параметры ---
 
-MODEL_PATH = './models/vae_model_V3.pth'
-MODEL_PATH = '\\\\fs.local\\AI\\AvtoEncoder\\models\\vae_model_V3.pth'
-MORPH_STEPS = 300
+MODEL_PATH = './models/vae_model_V4.pth'
+MODEL_PATH = '\\\\fs.local\\AI\\AvtoEncoder\\models\\vae_model_V5.pth'
+MORPH_STEPS = 60
 
 INPUT_DIR = 'input'
 SAVE_DIR = './mix/morph_frames'

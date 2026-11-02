@@ -8,12 +8,12 @@ from PIL import Image
 import importlib
 
 #MODEL_PATH = './models/vae_model_V2.pth'#  vae_model_V2
-MODEL_PATH = '\\\\fs.local\\AI\\AvtoEncoder\\models\\vae_model_V3.pth'
+MODEL_PATH = '\\\\fs.local\\AI\\AvtoEncoder\\models\\vae_model_V4.pth'
 INPUT_DIR = 'input'
 GIF_PATH = './mix/face_morph.gif'
 CROP_PERCENT = 1
-MORPH_STEPS = 50
-FPS = 25
+MORPH_STEPS = 600
+FPS = 50
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
